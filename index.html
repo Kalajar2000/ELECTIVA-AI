@@ -4,10 +4,14 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>¿Ya le preguntaste a la IA? · Electiva IA</title>
+  
+  <!-- Tipografía Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN con la paleta Late Night Scholar -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script id="tailwind-config">
     tailwind.config = {
@@ -92,13 +96,22 @@
 </head>
 <body class="bg-background font-body text-on-surface antialiased min-h-screen flex flex-col">
 
+  <!-- Toast de Notificación Flotante -->
+  <div id="app-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-space-sm bg-primary-container text-on-primary px-space-lg py-space-sm rounded-xl shadow-xl border border-primary-fixed/20">
+    <span class="material-symbols-outlined text-tertiary-fixed text-[24px]">check_circle</span>
+    <div>
+      <p id="toast-title" class="font-bold text-sm leading-tight">¡Copiado al portapapeles!</p>
+      <p id="toast-subtitle" class="text-xs text-primary-fixed-dim">Listo para pegar</p>
+    </div>
+  </div>
+
   <!-- Header Fijo con Contexto Académico -->
-  <header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-surface-container shadow-xs">
+  <header class="fixed top-0 w-full z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container shadow-xs">
     <div class="max-w-[1200px] mx-auto px-margin h-20 flex items-center justify-between gap-space-md">
       <div class="flex items-center gap-space-md min-w-0">
-        <div class="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-xs">
+        <button onclick="switchView('buscar-faq')" class="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-xs hover:opacity-90 transition-opacity">
           <span class="material-symbols-outlined text-[24px]">smart_toy</span>
-        </div>
+        </button>
         <div class="flex flex-col min-w-0">
           <div class="flex items-center gap-space-sm">
             <span class="font-headline text-lg font-bold text-primary tracking-tight truncate">¿Ya le preguntaste a la IA?</span>
@@ -113,9 +126,9 @@
       </div>
 
       <div class="flex items-center gap-space-sm shrink-0">
-        <div class="hidden md:flex items-center px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-xs gap-1.5">
+        <div id="db-status-badge" class="hidden md:flex items-center px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-xs gap-1.5 font-medium">
           <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
-          <span>Base de conocimiento activa</span>
+          <span id="db-status-text">Base de datos local activa</span>
         </div>
       </div>
     </div>
@@ -124,16 +137,16 @@
     <div class="bg-surface-container-low border-t border-surface-container/50">
       <div class="max-w-[1200px] mx-auto px-margin">
         <nav class="flex items-center gap-space-xs overflow-x-auto py-2">
-          <a data-path="buscar-faq" href="#" aria-current="page" class="px-space-md py-space-sm transition-colors whitespace-nowrap bg-primary-container text-on-primary font-medium text-sm rounded-lg shadow-sm font-semibold">
+          <a data-path="buscar-faq" href="#buscar" aria-current="page" class="px-space-md py-space-sm transition-colors whitespace-nowrap bg-primary-container text-on-primary font-medium text-sm rounded-lg shadow-sm font-semibold">
             1. Buscar FAQ
           </a>
-          <a data-path="detalle-de-duda" href="#" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
+          <a data-path="detalle-de-duda" href="#detalle" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
             2. Detalle de Duda
           </a>
-          <a data-path="prompt-para-ia" href="#" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
+          <a data-path="prompt-para-ia" href="#prompt" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
             3. Prompt para IA
           </a>
-          <a data-path="escribir-al-profe" href="#" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
+          <a data-path="escribir-al-profe" href="#contacto" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
             4. Escribir al Profe
           </a>
         </nav>
@@ -144,7 +157,9 @@
   <!-- Contenido Principal -->
   <main class="w-full pt-36 pb-space-xl flex-1">
     
-    <!-- VISTA 1: BUSCADOR DE FAQ (FUNCIÓN 1) -->
+    <!-- ================================================================= -->
+    <!-- VISTA 1: BUSCADOR DE FAQ (FUNCIÓN 1)                              -->
+    <!-- ================================================================= -->
     <div data-view="buscar-faq" class="max-w-[1200px] mx-auto px-margin">
       
       <!-- Hero de Búsqueda -->
@@ -231,7 +246,7 @@
 
       <!-- Cuadrícula Dinámica de FAQs -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-space-xl" id="faq-cards-container">
-        <!-- Las tarjetas se generan dinámicamente desde js/app.js y data/faqs.js -->
+        <!-- Renderizado dinámico -->
       </div>
 
       <!-- Estado Vacío cuando no hay resultados de búsqueda -->
@@ -246,11 +261,11 @@
           Si tu duda es nueva o específica, puedes generar un prompt estructurado para preguntarle a la IA con todo el contexto del curso.
         </p>
         <button 
-          onclick="switchView('prompt-para-ia')"
+          onclick="prefillAndSwitchToPrompt()"
           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold shadow-sm hover:opacity-95 transition-all"
         >
           <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
-          <span>Preguntarle primero a la IA</span>
+          <span>Preguntarle a la IA con esta duda</span>
         </button>
       </div>
 
@@ -266,7 +281,7 @@
                 ¿No encontraste la respuesta a tu caso?
               </h3>
               <p class="text-xs sm:text-sm text-primary-fixed">
-                Sigue la regla de oro: primero genera un prompt con contexto para Gemini/ChatGPT. Si no te resuelve, escríbele al profesor.
+                Sigue la regla del curso: primero genera un prompt con contexto para Gemini/ChatGPT. Si no te resuelve, escríbele al profesor.
               </p>
             </div>
           </div>
@@ -284,32 +299,298 @@
       </section>
     </div>
 
-    <!-- VISTA 2: DETALLE DE PREGUNTA (FUNCIÓN 2 - PREPARADA) -->
+    <!-- ================================================================= -->
+    <!-- VISTA 2: DETALLE DE PREGUNTA (FUNCIÓN 2)                           -->
+    <!-- ================================================================= -->
     <div data-view="detalle-de-duda" class="hidden max-w-[1000px] mx-auto px-margin" id="faq-detail-container">
-      <!-- Se carga dinámicamente con openFaqDetail() -->
+      <!-- Se inyecta dinámicamente con openFaqDetail() en js/app.js -->
     </div>
 
-    <!-- VISTA 3: PROMPT PARA IA (FUNCIÓN 3 - PLACEHOLDER PARA SIGUIENTE PASO) -->
-    <div data-view="prompt-para-ia" class="hidden max-w-[900px] mx-auto px-margin" id="prompt-builder-view">
-      <div class="text-center mb-space-lg">
-        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold mb-2">
-          Paso 3 del Flujo
-        </span>
-        <h2 class="font-headline text-3xl font-bold text-primary">Generador de Prompt para IA</h2>
-        <p class="text-sm text-on-surface-variant max-w-md mx-auto mt-1">
-          Próximamente: ingresa tu duda y genera un prompt listo para copiar en Gemini o ChatGPT con todo el contexto del curso.
+    <!-- ================================================================= -->
+    <!-- VISTA 3: GENERADOR DE PROMPT PARA IA (FUNCIÓN 3)                   -->
+    <!-- ================================================================= -->
+    <div data-view="prompt-para-ia" class="hidden max-w-[1200px] mx-auto px-margin" id="prompt-builder-view">
+      
+      <!-- Encabezado de la Sección -->
+      <div class="mb-space-lg text-center max-w-2xl mx-auto pt-space-xs">
+        <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold mb-2">
+          <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+          <span>Paso 2: Pregúntale a la IA</span>
+        </div>
+        <h1 class="font-display text-3xl sm:text-4xl font-extrabold text-primary tracking-tight mb-2">
+          Arma tu Prompt con el Contexto de la Electiva
+        </h1>
+        <p class="text-sm sm:text-base text-on-surface-variant leading-relaxed">
+          Genera un prompt estructurado con las directrices y stack oficial de la cátedra para que Gemini o ChatGPT te den la respuesta exacta sin inventar cosas raras.
         </p>
       </div>
+
+      <!-- Espacio de Trabajo en 2 Columnas -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+        
+        <!-- Columna Izquierda: Formulario (5 columnas) -->
+        <div class="lg:col-span-5 flex flex-col gap-space-md">
+          <div class="bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm border border-surface-container flex flex-col gap-space-md">
+            
+            <!-- Campo 1: ¿Cuál es tu error o duda? -->
+            <div class="flex flex-col gap-1">
+              <label class="font-headline text-sm font-bold text-on-surface flex items-center justify-between" for="input-problem">
+                <span class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-xs flex items-center justify-center font-bold">1</span>
+                  ¿Cuál es tu error o duda técnica?
+                </span>
+                <span class="text-xs text-secondary font-semibold">Requerido</span>
+              </label>
+              <textarea 
+                id="input-problem" 
+                rows="4" 
+                class="w-full mt-1 p-3 bg-surface-container-low rounded-xl text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-surface-container-lowest transition-all resize-none border border-surface-container"
+                placeholder="Describe tu error, pega el mensaje de la consola o explica qué necesitas solucionar..."
+              >Tengo un error de CORS al conectar el frontend con la API en Antigravity durante la prueba local</textarea>
+            </div>
+
+            <!-- Campo 2: Módulo / Taller -->
+            <div class="flex flex-col gap-1">
+              <label class="font-headline text-sm font-bold text-on-surface flex items-center gap-2" for="select-workshop">
+                <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-xs flex items-center justify-center font-bold">2</span>
+                ¿Para qué módulo o entrega es?
+              </label>
+              <div class="relative mt-1">
+                <select 
+                  id="select-workshop" 
+                  class="w-full appearance-none p-3 pr-10 bg-surface-container-low rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-surface-container-lowest transition-all cursor-pointer border border-surface-container"
+                >
+                  <option value="Hito 1: PRD y Prototipo Frontend">Hito 1: PRD y Prototipo Frontend</option>
+                  <option value="Taller 2: Conexión Git y Repositorio GitHub">Taller 2: Conexión Git y Repositorio GitHub</option>
+                  <option value="Taller 3: Agentes e Integración Antigravity" selected>Taller 3: Agentes e Integración Antigravity</option>
+                  <option value="Taller 4: Base de Datos y Despliegue en la Nube">Taller 4: Base de Datos y Despliegue en la Nube</option>
+                  <option value="General: Dudas de Metodología y Entregables">General: Dudas de Metodología y Entregables</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">expand_more</span>
+              </div>
+            </div>
+
+            <!-- Campo 3: ¿Qué ya has intentado? -->
+            <div class="flex flex-col gap-1">
+              <label class="font-headline text-sm font-bold text-on-surface flex items-center gap-2" for="input-tried">
+                <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-xs flex items-center justify-center font-bold">3</span>
+                ¿Qué has intentado ya?
+              </label>
+              <textarea 
+                id="input-tried" 
+                rows="3" 
+                class="w-full mt-1 p-3 bg-surface-container-low rounded-xl text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-surface-container-lowest transition-all resize-none border border-surface-container"
+                placeholder="Ej. Revisé la consola, agregué los headers en el servidor, reinicié el proceso..."
+              >Verifiqué las variables de entorno y reinicié el servidor de desarrollo, pero el navegador sigue bloqueando la petición.</textarea>
+            </div>
+
+            <!-- Herramientas / Stack Seleccionables -->
+            <div class="flex flex-col gap-1">
+              <label class="font-headline text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                Herramientas involucradas:
+              </label>
+              <div class="flex flex-wrap gap-1.5 mt-1" id="stack-chips-container">
+                <button type="button" data-val="Antigravity" class="stack-chip px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary text-on-primary transition-all shadow-xs">Antigravity</button>
+                <button type="button" data-val="GitHub" class="stack-chip px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary text-on-primary transition-all shadow-xs">GitHub</button>
+                <button type="button" data-val="HTML / Tailwind" class="stack-chip px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary text-on-primary transition-all shadow-xs">HTML / Tailwind</button>
+                <button type="button" data-val="JavaScript" class="stack-chip px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary text-on-primary transition-all shadow-xs">JavaScript</button>
+                <button type="button" data-val="Firebase" class="stack-chip px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all">Firebase</button>
+                <button type="button" data-val="Python" class="stack-chip px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all">Python</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Previsualización en Vivo y Lanzador (7 columnas) -->
+        <div class="lg:col-span-7 flex flex-col gap-space-md">
+          <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container p-space-lg flex flex-col">
+            
+            <div class="flex items-center justify-between pb-space-sm mb-space-sm border-b border-surface-container">
+              <span class="text-xs font-bold text-on-surface-variant flex items-center gap-1.5 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[18px] text-primary">smart_toy</span>
+                Prompt Listo para Copiar
+              </span>
+              <span class="text-xs text-on-surface-variant flex items-center gap-1.5 font-medium">
+                <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+                Se actualiza en vivo
+              </span>
+            </div>
+
+            <!-- Contenedor del Prompt Generado -->
+            <div class="bg-surface-container-low rounded-xl p-space-md border border-surface-container">
+              <pre id="prompt-output" class="text-sm text-on-surface font-mono whitespace-pre-wrap leading-relaxed select-all">Generando prompt...</pre>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="mt-space-lg flex flex-col gap-space-sm">
+              <button 
+                type="button" 
+                id="btn-copy-prompt" 
+                onclick="copyGeneratedPrompt()" 
+                class="w-full py-3.5 px-space-lg bg-primary-container text-on-primary rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-[0.99] transition-all"
+              >
+                <span class="material-symbols-outlined text-[22px]">content_copy</span>
+                <span id="btn-copy-prompt-text">Copiar Prompt para IA</span>
+              </button>
+
+              <div class="flex items-center gap-space-sm pt-1">
+                <a 
+                  href="https://gemini.google.com/app" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-low text-primary text-xs sm:text-sm font-semibold hover:bg-surface-container-high transition-colors border border-surface-container"
+                >
+                  <span>Abrir Gemini</span>
+                  <span class="material-symbols-outlined text-[16px]">north_east</span>
+                </a>
+                <a 
+                  href="https://chatgpt.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-low text-primary text-xs sm:text-sm font-semibold hover:bg-surface-container-high transition-colors border border-surface-container"
+                >
+                  <span>Abrir ChatGPT</span>
+                  <span class="material-symbols-outlined text-[16px]">north_east</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Checkbox de Desbloqueo hacia el Paso 4 -->
+            <div class="mt-space-lg pt-space-md border-t border-surface-container flex items-center justify-between gap-space-sm">
+              <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  id="check-ai-tried" 
+                  onchange="toggleTeacherEscalation(this.checked)"
+                  class="w-4 h-4 rounded text-primary focus:ring-primary border-outline-variant"
+                >
+                <span class="text-xs sm:text-sm text-on-surface font-medium">
+                  Ya le pregunté a la IA y no resolvió mi problema
+                </span>
+              </label>
+
+              <button 
+                id="btn-goto-teacher" 
+                onclick="switchView('escribir-al-profe')" 
+                class="hidden inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-primary hover:underline"
+              >
+                <span>Escribirle al profesor</span>
+                <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- VISTA 4: ESCRIBIR AL PROFE (FUNCIÓN 4 - PLACEHOLDER PARA SIGUIENTE PASO) -->
-    <div data-view="escribir-al-profe" class="hidden max-w-[600px] mx-auto px-margin" id="contact-teacher-view">
-      <div class="text-center mb-space-lg">
-        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold mb-2">
-          Último Recurso
-        </span>
-        <h2 class="font-headline text-3xl font-bold text-primary">Escribirle al Profesor</h2>
+    <!-- ================================================================= -->
+    <!-- VISTA 4: ESCRIBIRLE AL PROFESOR (FUNCIÓN 4 - ÚLTIMO RECURSO)       -->
+    <!-- ================================================================= -->
+    <div data-view="escribir-al-profe" class="hidden max-w-[680px] mx-auto px-margin" id="contact-teacher-view">
+      
+      <!-- Encabezado Mínimo y Amigable -->
+      <div class="text-center max-w-xl mx-auto mb-space-lg pt-space-xs">
+        <div class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold mb-space-sm">
+          <span class="material-symbols-outlined text-[16px]">support_agent</span>
+          <span>Último Recurso de Contacto</span>
+        </div>
+        <h1 class="font-display text-3xl font-extrabold text-primary tracking-tight mb-2">
+          ¿Sigue sin funcionar? Escríbele al profesor
+        </h1>
+        <p class="text-sm text-on-surface-variant leading-relaxed">
+          Si la base de preguntas y la IA no resolvieron tu caso técnico, o se trata de una novedad personal o de equipo, contáctalo directamente.
+        </p>
       </div>
+
+      <!-- Tarjeta Central de Contacto -->
+      <div class="bg-surface-container-lowest rounded-2xl p-space-lg md:p-space-xl shadow-sm flex flex-col gap-space-lg border border-surface-container">
+        
+        <!-- Ficha del Profesor y Correo Oficial -->
+        <div class="flex items-center gap-space-md p-space-md rounded-xl bg-surface-container-low border border-surface-container">
+          <div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-xs">
+            <span class="material-symbols-outlined text-[24px]">school</span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="font-bold text-sm text-on-surface">Cátedra de Inteligencia Artificial</span>
+            <span class="text-xs sm:text-sm text-primary font-mono font-medium truncate select-all" id="teacher-email-display">
+              santiago@nexxai.world
+            </span>
+          </div>
+        </div>
+
+        <!-- Botones de Acción Inmediata -->
+        <div class="flex flex-col sm:flex-row gap-space-sm">
+          <!-- Botón 1: Abrir en Gmail -->
+          <a 
+            id="btn-open-gmail" 
+            href="https://mail.google.com/mail/?view=cm&fs=1&to=santiago@nexxai.world&su=%5BElectiva%20IA%5D%20Consulta%20de%20estudiante" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="flex-1 flex items-center justify-center gap-2 px-space-md py-3.5 rounded-xl bg-primary text-on-primary font-bold text-sm shadow-sm hover:opacity-95 active:scale-[0.99] transition-all text-center"
+          >
+            <span class="material-symbols-outlined text-[20px]">mail</span>
+            <span>Abrir en Gmail</span>
+          </a>
+
+          <!-- Botón 2: Copiar Correo -->
+          <button 
+            type="button" 
+            id="btn-copy-email" 
+            onclick="copyTeacherEmail()" 
+            class="flex-1 flex items-center justify-center gap-2 px-space-md py-3.5 rounded-xl bg-surface-container-high text-primary font-bold text-sm hover:bg-surface-container active:scale-[0.99] transition-all"
+          >
+            <span class="material-symbols-outlined text-[18px]" id="copy-email-icon">content_copy</span>
+            <span id="copy-email-text">Copiar correo</span>
+          </button>
+        </div>
+
+        <!-- Plantilla Rápida Sugerida (Opcional pero muy útil para el estudiante) -->
+        <div class="p-space-md rounded-xl bg-surface-container-low border border-surface-container space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-primary">description</span>
+              Plantilla sugerida para tu correo:
+            </span>
+            <button onclick="copyEmailTemplate()" class="text-xs text-primary font-semibold hover:underline">
+              Copiar cuerpo del correo
+            </button>
+          </div>
+          <pre id="email-template-preview" class="text-xs text-on-surface-variant font-mono bg-white p-3 rounded-lg border border-surface-container whitespace-pre-wrap select-all">Asunto: [Electiva IA] [Grupo X] Consulta sobre [Tema]
+
+Estimado Profesor,
+
+Me comunico luego de haber revisado las FAQs del curso y consultado con la IA sin éxito.
+
+1. ¿Qué se intentó?
+[Describe brevemente qué hiciste]
+
+2. Error o comportamiento exacto:
+[Pega el error de consola o descripción]
+
+Muchas gracias.</pre>
+        </div>
+
+        <!-- Nota de Horarios de Revisión -->
+        <div class="rounded-xl p-space-md bg-surface-container-low flex items-start gap-space-sm border border-surface-container">
+          <span class="material-symbols-outlined text-secondary text-[20px] shrink-0 mt-0.5">schedule</span>
+          <p class="text-xs text-on-surface-variant leading-relaxed">
+            <strong>Horarios de revisión:</strong> Lunes a viernes. Los correos enviados después de las 10:00 PM se responderán al día siguiente hábil. ¡Mucho ánimo con tu entrega!
+          </p>
+        </div>
+
+      </div>
+
+      <div class="text-center mt-space-md">
+        <button onclick="switchView('buscar-faq')" class="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Volver al buscador de preguntas</span>
+        </button>
+      </div>
+
     </div>
 
   </main>
@@ -329,8 +610,10 @@
     </div>
   </footer>
 
-  <!-- Carga de Datos y Scripts -->
+  <!-- Carga de Scripts y Base de Datos -->
   <script src="data/faqs.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-service.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
