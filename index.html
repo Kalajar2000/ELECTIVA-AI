@@ -426,11 +426,21 @@
             <div class="mt-space-lg flex flex-col gap-space-sm">
               <button 
                 type="button" 
+                id="btn-gemini-enhance" 
+                onclick="enhancePromptWithGemini()" 
+                class="w-full py-2.5 px-space-md bg-secondary-container text-on-secondary rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs hover:bg-secondary active:scale-[0.99] transition-all"
+              >
+                <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+                <span>✨ Pulir Prompt con Gemini AI</span>
+              </button>
+
+              <button 
+                type="button" 
                 id="btn-copy-prompt" 
                 onclick="copyGeneratedPrompt()" 
-                class="w-full py-3.5 px-space-lg bg-primary-container text-on-primary rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-[0.99] transition-all"
+                class="w-full py-3 px-space-lg bg-primary-container text-on-primary rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-[0.99] transition-all"
               >
-                <span class="material-symbols-outlined text-[22px]">content_copy</span>
+                <span class="material-symbols-outlined text-[20px]">content_copy</span>
                 <span id="btn-copy-prompt-text">Copiar Prompt para IA</span>
               </button>
 
@@ -614,6 +624,8 @@ Muchas gracias.</pre>
   <script src="data/faqs.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/firebase-service.js"></script>
+  <script src="js/gemini-config.js"></script>
+  <script src="js/gemini-service.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

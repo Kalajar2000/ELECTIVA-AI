@@ -1,11 +1,10 @@
 // =========================================================================
 // APLICACIÓN: "¿YA LE PREGUNTASTE A LA IA?" - ELECTIVA IA
 // =========================================================================
-// Implementación completa de las 4 funciones del PRD:
 // 1. Buscador de dudas frecuentes
-// 2. Contador de frecuencia y vista detallada oficial
-// 3. Generador de prompts para Gemini / ChatGPT con contexto del curso
-// 4. Contacto directo al profesor como último recurso (Gmail y Copiar correo)
+// 2. Contador de frecuencia y vista detallada oficial + Respuestas de compañeros
+// 3. Generador de prompts asistido con Gemini AI y fallback dinámico
+// 4. Contacto directo al profesor como último recurso
 // =========================================================================
 
 const AppState = {
@@ -31,7 +30,6 @@ function normalizeText(text) {
 
 // Inicialización de la aplicación
 document.addEventListener("DOMContentLoaded", async () => {
-  // Inicializar adaptador de datos (Firestore o Local)
   if (window.DataService) {
     await window.DataService.init();
     AppState.faqs = await window.DataService.getFaqs();
@@ -42,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   initPromptGenerator();
   renderFaqCards();
 
-  // Router basado en Hash de URL (ej. #buscar, #prompt, #contacto, #detalle?id=...)
   handleHashRouting();
   window.addEventListener("hashchange", handleHashRouting);
 });
@@ -69,7 +66,6 @@ function initSearchAndFilters() {
       renderFaqCards();
     });
 
-    // Atajos de teclado ⌘K / Ctrl+K y Escape
     window.addEventListener("keydown", (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -170,6 +166,7 @@ function renderFaqCards() {
 
   container.innerHTML = filtered
     .map((faq) => {
+      const answersCount = faq.communityAnswers ? faq.communityAnswers.length : 0;
       return `
       <article 
         class="faq-card group bg-surface-container-lowest rounded-2xl shadow-xs hover:shadow-md transition-all duration-300 p-space-lg flex flex-col justify-between border border-surface-container hover:border-primary/40 cursor-pointer"
@@ -181,10 +178,18 @@ function renderFaqCards() {
             <span class="px-space-sm py-1 rounded-full bg-surface-container text-primary text-xs font-semibold">
               ${faq.categoryLabel}
             </span>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-bold shrink-0 shadow-2xs">
-              <span class="material-symbols-outlined text-[14px]">local_fire_department</span>
-              Preguntada ${faq.count} veces
-            </span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              ${answersCount > 0 ? `
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-container/15 text-tertiary-container text-xs font-semibold">
+                  <span class="material-symbols-outlined text-[13px]">forum</span>
+                  ${answersCount} ${answersCount === 1 ? 'aporte' : 'aportes'}
+                </span>
+              ` : ''}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-bold shadow-2xs">
+                <span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+                Preguntada ${faq.count} veces
+              </span>
+            </div>
           </div>
 
           <h3 class="font-headline text-lg text-on-surface group-hover:text-primary transition-colors mb-2 font-bold leading-snug">
@@ -236,7 +241,7 @@ function prefillAndSwitchToPrompt() {
 }
 
 // =========================================================================
-// 2. FUNCIÓN 2: DETALLE COMPLETO Y CONTADOR DE FRECUENCIA
+// 2. FUNCIÓN 2: DETALLE COMPLETO Y RESPUESTAS DE COMPAÑEROS
 // =========================================================================
 
 function openFaqDetail(faqId) {
@@ -244,151 +249,237 @@ function openFaqDetail(faqId) {
   const faq = AppState.faqs.find((f) => f.id === faqId);
   if (!faq) return;
 
-  // Registrar consulta en el contador si el servicio de datos está disponible
   if (window.DataService) {
     window.DataService.incrementFaqCount(faqId);
   }
 
   const detailView = document.getElementById("faq-detail-container");
-  if (detailView) {
-    detailView.innerHTML = `
-      <!-- Botón Volver -->
-      <div class="mb-space-md">
-        <button 
-          onclick="switchView('buscar-faq')"
-          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container-high text-primary hover:bg-surface-container text-xs sm:text-sm font-semibold transition-colors"
-        >
-          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-          <span>Volver al buscador de preguntas</span>
-        </button>
+  if (!detailView) return;
+
+  const communityAnswers = faq.communityAnswers || [];
+
+  detailView.innerHTML = `
+    <!-- Botón Volver -->
+    <div class="mb-space-md">
+      <button 
+        onclick="switchView('buscar-faq')"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container-high text-primary hover:bg-surface-container text-xs sm:text-sm font-semibold transition-colors"
+      >
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span>Volver al buscador de preguntas</span>
+      </button>
+    </div>
+
+    <!-- Tarjeta Principal del Detalle -->
+    <article class="relative bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container p-space-lg md:p-space-xl overflow-hidden mb-space-lg">
+      <div class="absolute left-0 top-0 bottom-0 w-2 bg-primary"></div>
+
+      <!-- Encabezado de la Duda -->
+      <div class="flex flex-wrap items-center justify-between gap-space-sm mb-space-md">
+        <span class="px-3 py-1 rounded-full bg-surface-container text-primary text-xs font-semibold">
+          ${faq.categoryLabel}
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs sm:text-sm font-bold shadow-2xs">
+          <span class="material-symbols-outlined text-[16px]">local_fire_department</span>
+          Esta pregunta ya me la han hecho ${faq.count} veces
+        </span>
       </div>
 
-      <!-- Tarjeta Principal del Detalle -->
-      <article class="relative bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container p-space-lg md:p-space-xl overflow-hidden">
-        <div class="absolute left-0 top-0 bottom-0 w-2 bg-primary"></div>
+      <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-primary tracking-tight mb-space-md">
+        ${faq.title}
+      </h1>
 
-        <!-- Encabezado de la Duda -->
-        <div class="flex flex-wrap items-center justify-between gap-space-sm mb-space-md">
-          <span class="px-3 py-1 rounded-full bg-surface-container text-primary text-xs font-semibold">
-            ${faq.categoryLabel}
-          </span>
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs sm:text-sm font-bold shadow-2xs">
-            <span class="material-symbols-outlined text-[16px]">local_fire_department</span>
-            Esta pregunta ya me la han hecho ${faq.count} veces
-          </span>
+      <!-- Mensaje de Verificación Oficial -->
+      <div class="flex items-center justify-between gap-2 p-3 bg-surface-container-low rounded-xl mb-space-lg border-l-4 border-tertiary-container">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-tertiary-container text-[22px]">verified</span>
+          <span class="text-xs sm:text-sm font-bold text-on-surface">Respuesta oficial y verificada por el profesor</span>
+        </div>
+        <span class="text-xs text-on-surface-variant font-medium bg-white px-2.5 py-1 rounded-lg border border-surface-container">${faq.classRef}</span>
+      </div>
+
+      <!-- Desglose Paso a Paso -->
+      <div class="space-y-space-lg text-on-surface text-sm sm:text-base">
+        
+        <!-- Paso 1: Propósito -->
+        <div class="flex gap-space-md items-start">
+          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-on-primary font-bold text-sm shrink-0">1</span>
+          <div class="space-y-1">
+            <h2 class="font-headline text-base sm:text-lg text-primary font-bold">¿Cuál es el propósito de esta regla?</h2>
+            <p class="text-on-surface-variant leading-relaxed text-sm">${faq.details.purpose}</p>
+          </div>
         </div>
 
-        <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-primary tracking-tight mb-space-md">
-          ${faq.title}
-        </h1>
-
-        <!-- Mensaje de Verificación Oficial -->
-        <div class="flex items-center justify-between gap-2 p-3 bg-surface-container-low rounded-xl mb-space-lg border-l-4 border-tertiary-container">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-tertiary-container text-[22px]">verified</span>
-            <span class="text-xs sm:text-sm font-bold text-on-surface">Respuesta oficial y verificada por el profesor</span>
-          </div>
-          <span class="text-xs text-on-surface-variant font-medium bg-white px-2.5 py-1 rounded-lg border border-surface-container">${faq.classRef}</span>
-        </div>
-
-        <!-- Desglose Paso a Paso -->
-        <div class="space-y-space-lg text-on-surface text-sm sm:text-base">
-          
-          <!-- Paso 1: Propósito -->
-          <div class="flex gap-space-md items-start">
-            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-on-primary font-bold text-sm shrink-0">1</span>
-            <div class="space-y-1">
-              <h2 class="font-headline text-base sm:text-lg text-primary font-bold">¿Cuál es el propósito de esta regla?</h2>
-              <p class="text-on-surface-variant leading-relaxed text-sm">${faq.details.purpose}</p>
-            </div>
-          </div>
-
-          <!-- Paso 2: Qué debes poner / hacer -->
-          <div class="flex gap-space-md items-start">
-            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-tertiary-container text-white font-bold text-sm shrink-0">2</span>
-            <div class="space-y-2 w-full">
-              <h2 class="font-headline text-base sm:text-lg text-tertiary-container font-bold flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                QUÉ DEBES PONER O HACER (Válido):
-              </h2>
-              <div class="bg-surface-container-low p-space-md rounded-xl space-y-2 text-xs sm:text-sm border border-surface-container">
-                ${faq.details.allowed
-                  .map(
-                    (item) => `
-                  <div class="flex items-start gap-2">
-                    <span class="material-symbols-outlined text-tertiary-container text-[18px] shrink-0 mt-0.5">check</span>
-                    <span class="text-on-surface leading-snug">${item}</span>
-                  </div>`
-                  )
-                  .join("")}
-              </div>
-            </div>
-          </div>
-
-          <!-- Paso 3: Qué NO debes hacer -->
-          <div class="flex gap-space-md items-start">
-            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-error text-on-error font-bold text-sm shrink-0">3</span>
-            <div class="space-y-2 w-full">
-              <h2 class="font-headline text-base sm:text-lg text-error font-bold flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[20px]">cancel</span>
-                QUÉ NO DEBES HACER (Invalida la entrega):
-              </h2>
-              <div class="bg-error-container/60 p-space-md rounded-xl text-xs sm:text-sm text-on-error-container space-y-2 border border-error/20">
-                ${faq.details.forbidden
-                  .map(
-                    (item) => `
-                  <div class="flex items-start gap-2">
-                    <span class="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">close</span>
-                    <span class="leading-snug">${item}</span>
-                  </div>`
-                  )
-                  .join("")}
-              </div>
+        <!-- Paso 2: Qué debes poner / hacer -->
+        <div class="flex gap-space-md items-start">
+          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-tertiary-container text-white font-bold text-sm shrink-0">2</span>
+          <div class="space-y-2 w-full">
+            <h2 class="font-headline text-base sm:text-lg text-tertiary-container font-bold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[20px]">check_circle</span>
+              QUÉ DEBES PONER O HACER (Válido):
+            </h2>
+            <div class="bg-surface-container-low p-space-md rounded-xl space-y-2 text-xs sm:text-sm border border-surface-container">
+              ${faq.details.allowed
+                .map(
+                  (item) => `
+                <div class="flex items-start gap-2">
+                  <span class="material-symbols-outlined text-tertiary-container text-[18px] shrink-0 mt-0.5">check</span>
+                  <span class="text-on-surface leading-snug">${item}</span>
+                </div>`
+                )
+                .join("")}
             </div>
           </div>
         </div>
 
-        <!-- Formato Rápido para Copiar -->
-        <div class="mt-space-xl p-space-md bg-surface-container rounded-xl flex flex-col sm:flex-row items-center justify-between gap-space-md">
-          <div class="flex items-center gap-space-sm min-w-0">
-            <span class="material-symbols-outlined text-primary text-[24px] shrink-0">content_copy</span>
-            <div class="min-w-0">
-              <p class="font-bold text-xs sm:text-sm text-on-surface">Formato o plantilla recomendada:</p>
-              <p class="text-xs text-on-surface-variant font-mono bg-white/80 px-2.5 py-1 rounded-md mt-1 truncate select-all border border-surface-container">${faq.details.template}</p>
+        <!-- Paso 3: Qué NO debes hacer -->
+        <div class="flex gap-space-md items-start">
+          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-error text-on-error font-bold text-sm shrink-0">3</span>
+          <div class="space-y-2 w-full">
+            <h2 class="font-headline text-base sm:text-lg text-error font-bold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[20px]">cancel</span>
+              QUÉ NO DEBES HACER (Invalida la entrega):
+            </h2>
+            <div class="bg-error-container/60 p-space-md rounded-xl text-xs sm:text-sm text-on-error-container space-y-2 border border-error/20">
+              ${faq.details.forbidden
+                .map(
+                  (item) => `
+                <div class="flex items-start gap-2">
+                  <span class="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">close</span>
+                  <span class="leading-snug">${item}</span>
+                </div>`
+                )
+                .join("")}
             </div>
           </div>
-          <button 
-            type="button"
-            onclick="copyFaqTemplate('${faq.details.template.replace(/'/g, "\\'")}', this)"
-            class="w-full sm:w-auto px-4 py-2.5 bg-primary-container text-on-primary font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0"
+        </div>
+      </div>
+
+      <!-- Formato Rápido para Copiar -->
+      <div class="mt-space-xl p-space-md bg-surface-container rounded-xl flex flex-col sm:flex-row items-center justify-between gap-space-md">
+        <div class="flex items-center gap-space-sm min-w-0">
+          <span class="material-symbols-outlined text-primary text-[24px] shrink-0">content_copy</span>
+          <div class="min-w-0">
+            <p class="font-bold text-xs sm:text-sm text-on-surface">Formato o plantilla recomendada:</p>
+            <p class="text-xs text-on-surface-variant font-mono bg-white/80 px-2.5 py-1 rounded-md mt-1 truncate select-all border border-surface-container">${faq.details.template}</p>
+          </div>
+        </div>
+        <button 
+          type="button"
+          onclick="copyFaqTemplate('${faq.details.template.replace(/'/g, "\\'")}', this)"
+          class="w-full sm:w-auto px-4 py-2.5 bg-primary-container text-on-primary font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0"
+        >
+          <span class="material-symbols-outlined text-[18px]">copy_all</span>
+          <span>Copiar formato</span>
+        </button>
+      </div>
+    </article>
+
+    <!-- SECCIÓN COLABORATIVA: RESPUESTAS ENTRE ESTUDIANTES -->
+    <section class="bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container p-space-lg md:p-space-xl mb-space-lg">
+      <div class="flex items-center justify-between gap-space-sm mb-space-sm">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">forum</span>
+          <h2 class="font-headline text-lg sm:text-xl font-bold text-on-surface">
+            Aportes y Soluciones de Compañeros
+          </h2>
+        </div>
+        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">
+          ${communityAnswers.length} ${communityAnswers.length === 1 ? 'aporte' : 'aportes'}
+        </span>
+      </div>
+      <p class="text-xs sm:text-sm text-on-surface-variant mb-space-md leading-relaxed">
+        ¿Descubriste un tip, atajo o cómo lo solucionó tu equipo? Si sabes la respuesta, déjala aquí para ayudar a tus compañeros (no requiere login).
+      </p>
+
+      <!-- Formulario para agregar aporte -->
+      <form onsubmit="handlePostCommunityAnswer(event, '${faq.id}')" class="bg-surface-container-low p-space-md rounded-xl border border-surface-container mb-space-lg flex flex-col gap-space-sm">
+        <div class="flex flex-col sm:flex-row gap-space-xs sm:items-center">
+          <input 
+            type="text" 
+            id="input-author-${faq.id}" 
+            placeholder="Tu nombre o apodo (opcional)" 
+            class="sm:w-64 p-2 bg-surface-container-lowest rounded-lg text-xs sm:text-sm border border-surface-container focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            <span class="material-symbols-outlined text-[18px]">copy_all</span>
-            <span>Copiar formato</span>
+          <span class="text-2xs text-on-surface-variant">Se publicará con la fecha actual</span>
+        </div>
+        <textarea 
+          id="input-answer-${faq.id}" 
+          rows="3" 
+          required 
+          placeholder="Si sabes la respuesta de esta duda o tienes un tip, escribe acá tu respuesta..." 
+          class="w-full p-3 bg-surface-container-lowest rounded-lg text-xs sm:text-sm border border-surface-container focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+        ></textarea>
+        <div class="flex justify-end">
+          <button 
+            type="submit" 
+            class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary rounded-lg text-xs sm:text-sm font-bold shadow-xs hover:opacity-95 active:scale-95 transition-all"
+          >
+            <span class="material-symbols-outlined text-[16px]">send</span>
+            <span>Publicar respuesta</span>
           </button>
         </div>
+      </form>
 
-        <!-- Banner de Ayuda Adicional -->
-        <div class="mt-space-xl pt-space-md border-t border-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-sm text-center sm:text-left">
-          <span class="text-xs text-on-surface-variant">¿Esta respuesta no resolvió exactamente tu caso?</span>
-          <div class="flex items-center gap-2">
-            <button onclick="switchView('prompt-para-ia')" class="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1">
-              <span>Armar prompt para IA</span>
-              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-            </button>
-            <span class="text-outline text-xs">•</span>
-            <button onclick="switchView('escribir-al-profe')" class="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1">
-              <span>Escribirle al profesor</span>
-              <span class="material-symbols-outlined text-[14px]">mail</span>
-            </button>
+      <!-- Lista de aportes publicados -->
+      <div id="community-answers-list-${faq.id}" class="space-y-3">
+        ${communityAnswers.length === 0 ? `
+          <div class="text-center py-6 text-on-surface-variant text-xs sm:text-sm bg-surface-container-low/50 rounded-xl border border-dashed border-surface-container">
+            <span class="material-symbols-outlined text-[24px] text-outline mb-1 block">chat_bubble_outline</span>
+            Aún no hay aportes de compañeros para esta duda. ¡Sé el primero en compartir tu experiencia!
           </div>
-        </div>
+        ` : communityAnswers.map(ans => `
+          <div class="p-space-md bg-surface-container-low rounded-xl border border-surface-container flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-primary flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">account_circle</span>
+                ${ans.author || 'Compañero anónimo'}
+              </span>
+              <span class="text-outline text-2xs">${ans.createdAt}</span>
+            </div>
+            <p class="text-xs sm:text-sm text-on-surface leading-relaxed mt-1 whitespace-pre-wrap">${ans.text}</p>
+          </div>
+        `).join('')}
+      </div>
+    </section>
 
-      </article>
-    `;
-  }
+    <!-- Banner de Ayuda Adicional -->
+    <div class="pt-space-md border-t border-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-sm text-center sm:text-left">
+      <span class="text-xs text-on-surface-variant">¿Esta respuesta no resolvió exactamente tu caso?</span>
+      <div class="flex items-center gap-2">
+        <button onclick="switchView('prompt-para-ia')" class="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1">
+          <span>Armar prompt para IA</span>
+          <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </button>
+        <span class="text-outline text-xs">•</span>
+        <button onclick="switchView('escribir-al-profe')" class="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1">
+          <span>Escribirle al profesor</span>
+          <span class="material-symbols-outlined text-[14px]">mail</span>
+        </button>
+      </div>
+    </div>
+  `;
 
   window.location.hash = `detalle?id=${faqId}`;
   switchView("detalle-de-duda");
+}
+
+async function handlePostCommunityAnswer(event, faqId) {
+  event.preventDefault();
+  const authorInput = document.getElementById(`input-author-${faqId}`);
+  const answerInput = document.getElementById(`input-answer-${faqId}`);
+
+  if (!answerInput || !answerInput.value.trim()) return;
+
+  const author = authorInput ? authorInput.value.trim() : "";
+  const answerText = answerInput.value.trim();
+
+  if (window.DataService) {
+    await window.DataService.addCommunityAnswer(faqId, answerText, author);
+  }
+
+  showToast("¡Aporte publicado con éxito!", "Gracias por ayudar a tus compañeros");
+  openFaqDetail(faqId);
 }
 
 function copyFaqTemplate(text, btnElement) {
@@ -411,7 +502,7 @@ function copyFaqTemplate(text, btnElement) {
 }
 
 // =========================================================================
-// 3. FUNCIÓN 3: GENERADOR DE PROMPT PARA IA CON CONTEXTO
+// 3. FUNCIÓN 3: GENERADOR DE PROMPT PARA IA CON APOYO DE GEMINI
 // =========================================================================
 
 function initPromptGenerator() {
@@ -474,9 +565,78 @@ Instrucciones para tu respuesta:
 3. Indícame qué verificar en la terminal o consola del navegador para confirmar que quedó resuelto.`;
 
   outputElement.textContent = generated;
-
-  // Actualizar la plantilla de correo del paso 4 con esta misma información
   updateEmailDraft(problem, tried);
+}
+
+// Pulir con Gemini AI
+async function enhancePromptWithGemini() {
+  const problemInput = document.getElementById("input-problem");
+  const workshopSelect = document.getElementById("select-workshop");
+  const triedInput = document.getElementById("input-tried");
+  const outputElement = document.getElementById("prompt-output");
+  const geminiBtn = document.getElementById("btn-gemini-enhance");
+
+  const problem = problemInput ? problemInput.value.trim() : "";
+  if (!problem) {
+    showToast("Por favor describe tu duda", "Escribe el error antes de consultar a Gemini");
+    if (problemInput) problemInput.focus();
+    return;
+  }
+
+  // Verificar si hay clave de Gemini configurada
+  let apiKey = window.getGeminiApiKey ? window.getGeminiApiKey() : "";
+  if (!apiKey) {
+    const inputKey = prompt(
+      "Ingresa tu clave gratuita de Gemini API (Google AI Studio):\n\nSe guardará únicamente en tu navegador de forma segura."
+    );
+    if (!inputKey || !inputKey.trim()) {
+      showToast("Operación cancelada", "Puedes seguir usando el generador inteligente sin API key");
+      return;
+    }
+    localStorage.setItem("GEMINI_API_KEY", inputKey.trim());
+    apiKey = inputKey.trim();
+  }
+
+  // Estado de carga visual
+  let originalBtnHtml = "";
+  if (geminiBtn) {
+    originalBtnHtml = geminiBtn.innerHTML;
+    geminiBtn.innerHTML = `
+      <span class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+      <span>Gemini optimizando prompt...</span>
+    `;
+    geminiBtn.disabled = true;
+  }
+
+  try {
+    const workshop = workshopSelect ? workshopSelect.value : "Electiva IA";
+    const tried = triedInput ? triedInput.value.trim() : "He revisado la consola y código básico.";
+    
+    const refinedPrompt = await window.GeminiService.generateSmartPrompt({
+      problem,
+      workshop,
+      stack: AppState.selectedStack,
+      tried
+    });
+
+    if (outputElement && refinedPrompt) {
+      outputElement.textContent = refinedPrompt;
+      showToast("✨ ¡Prompt optimizado por Gemini!", "Listo para copiar en ChatGPT o Gemini");
+    }
+  } catch (err) {
+    console.error("Error en GeminiService:", err);
+    if (err.message === "NO_KEY" || err.message.includes("API key")) {
+      localStorage.removeItem("GEMINI_API_KEY");
+      showToast("Clave inválida", "Por favor revisa tu Gemini API Key");
+    } else {
+      showToast("Aviso de Gemini", err.message || "No se pudo conectar con Gemini");
+    }
+  } finally {
+    if (geminiBtn) {
+      geminiBtn.innerHTML = originalBtnHtml;
+      geminiBtn.disabled = false;
+    }
+  }
 }
 
 function copyGeneratedPrompt() {
@@ -595,7 +755,6 @@ function initNavigation() {
 function switchView(viewName) {
   AppState.activeView = viewName;
 
-  // Actualizar estilos de los enlaces de navegación
   document.querySelectorAll("nav a[data-path]").forEach((link) => {
     const path = link.getAttribute("data-path");
     if (path === viewName) {
@@ -607,7 +766,6 @@ function switchView(viewName) {
     }
   });
 
-  // Mostrar la vista activa
   document.querySelectorAll("main > div[data-view]").forEach((viewEl) => {
     if (viewEl.getAttribute("data-view") === viewName) {
       viewEl.classList.remove("hidden");
@@ -616,7 +774,6 @@ function switchView(viewName) {
     }
   });
 
-  // Actualizar hash de la barra de direcciones
   if (viewName === "buscar-faq") window.location.hash = "buscar";
   else if (viewName === "prompt-para-ia") window.location.hash = "prompt";
   else if (viewName === "escribir-al-profe") window.location.hash = "contacto";
@@ -647,7 +804,6 @@ function handleHashRouting() {
   }
 }
 
-// Mostrar Toast
 function showToast(title, subtitle) {
   const toast = document.getElementById("app-toast");
   const titleEl = document.getElementById("toast-title");
@@ -667,12 +823,14 @@ function showToast(title, subtitle) {
   }, 3000);
 }
 
-// Exponer funciones necesarias en el objeto window para handlers en HTML
+// Exponer funciones globales para handlers en HTML
 window.switchView = switchView;
 window.openFaqDetail = openFaqDetail;
 window.copyFaqTemplate = copyFaqTemplate;
 window.copyGeneratedPrompt = copyGeneratedPrompt;
+window.enhancePromptWithGemini = enhancePromptWithGemini;
 window.toggleTeacherEscalation = toggleTeacherEscalation;
 window.copyTeacherEmail = copyTeacherEmail;
 window.copyEmailTemplate = copyEmailTemplate;
 window.prefillAndSwitchToPrompt = prefillAndSwitchToPrompt;
+window.handlePostCommunityAnswer = handlePostCommunityAnswer;

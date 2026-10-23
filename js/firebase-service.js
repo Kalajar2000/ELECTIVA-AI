@@ -1,9 +1,8 @@
 // =========================================================================
 // SERVICIO DE DATOS (FIREBASE FIRESTORE & LOCAL STORAGE ADAPTER)
 // =========================================================================
-// Este servicio maneja la lectura y guardado de las preguntas frecuentes.
-// Si Firebase está configurado, sincroniza con Firestore en tiempo real.
-// Si no, utiliza de forma transparente los datos locales y LocalStorage.
+// Este servicio maneja la lectura y guardado de las preguntas frecuentes y
+// los aportes colaborativos de los estudiantes.
 
 const DataService = {
   db: null,
@@ -64,7 +63,7 @@ const DataService = {
     // Si Firebase está activo, consultar colección 'faqs'
     if (this.isCloudActive && this.db) {
       try {
-        const snapshot = await this.db.collection("faqs").orderBy("count", "desc").get();
+        const snapshot = await this.db.collection("faqs").get();
         if (!snapshot.empty) {
           const cloudFaqs = [];
           snapshot.forEach((doc) => {
@@ -120,23 +119,43 @@ const DataService = {
     }
   },
 
-  // Agrega una nueva pregunta frecuente
-  async saveFaq(newFaq) {
+  // Agrega un aporte o respuesta comunitaria entre estudiantes
+  async addCommunityAnswer(faqId, answerText, author = "Compañero anónimo") {
+    const newAnswer = {
+      id: "ans_" + Date.now(),
+      author: author.trim() || "Compañero anónimo",
+      text: answerText.trim(),
+      createdAt: new Date().toLocaleDateString("es-CO", {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    };
+
     if (this.isCloudActive && this.db) {
       try {
-        await this.db.collection("faqs").doc(newFaq.id).set(newFaq);
-        return true;
+        const ref = this.db.collection("faqs").doc(faqId);
+        await ref.update({
+          communityAnswers: firebase.firestore.FieldValue.arrayUnion(newAnswer)
+        });
+        return newAnswer;
       } catch (e) {
-        console.error("Error guardando en Firestore:", e);
+        console.warn("No se pudo guardar en Firestore, guardando local:", e);
       }
     }
 
-    // Guardar en LocalStorage
+    // Guardado local
     if (window.AppState && window.AppState.faqs) {
-      window.AppState.faqs.unshift(newFaq);
-      localStorage.setItem("ELECTIVA_IA_FAQS", JSON.stringify(window.AppState.faqs));
+      const faq = window.AppState.faqs.find((f) => f.id === faqId);
+      if (faq) {
+        faq.communityAnswers = faq.communityAnswers || [];
+        faq.communityAnswers.unshift(newAnswer);
+        localStorage.setItem("ELECTIVA_IA_FAQS", JSON.stringify(window.AppState.faqs));
+      }
     }
-    return true;
+
+    return newAnswer;
   }
 };
 
