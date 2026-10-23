@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.DataService) {
     await window.DataService.init();
     AppState.faqs = await window.DataService.getFaqs();
+    AppState.globalGeminiKey = await window.DataService.getGlobalGeminiKey();
   }
 
   initSearchAndFilters();
@@ -823,12 +824,32 @@ function showToast(title, subtitle) {
   }, 3000);
 }
 
+async function configureGlobalCourseGeminiKey() {
+  const current = window.getGeminiApiKey();
+  const input = prompt(
+    "Profesor: Ingresa la clave de Gemini API que usarán todos los estudiantes del curso:\n\n(Se guardará centralizada en Firestore para que ningún estudiante tenga que ingresarla)",
+    current || ""
+  );
+  if (!input || !input.trim()) return;
+
+  if (window.DataService) {
+    const ok = await window.DataService.setGlobalGeminiKey(input.trim());
+    if (ok) {
+      AppState.globalGeminiKey = input.trim();
+      showToast("¡Clave de Gemini guardada en Firestore!", "Todos los estudiantes ahora tienen acceso a Gemini");
+    } else {
+      showToast("Aviso", "Guardada localmente. Asegúrate de que Firestore esté conectado.");
+    }
+  }
+}
+
 // Exponer funciones globales para handlers en HTML
 window.switchView = switchView;
 window.openFaqDetail = openFaqDetail;
 window.copyFaqTemplate = copyFaqTemplate;
 window.copyGeneratedPrompt = copyGeneratedPrompt;
 window.enhancePromptWithGemini = enhancePromptWithGemini;
+window.configureGlobalCourseGeminiKey = configureGlobalCourseGeminiKey;
 window.toggleTeacherEscalation = toggleTeacherEscalation;
 window.copyTeacherEmail = copyTeacherEmail;
 window.copyEmailTemplate = copyEmailTemplate;

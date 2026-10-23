@@ -133,6 +133,37 @@ const DataService = {
     }
 
     return newAnswer;
+  },
+
+  // Obtiene la clave global de Gemini compartida para todos los estudiantes
+  async getGlobalGeminiKey() {
+    if (this.isCloudActive && this.db) {
+      try {
+        const doc = await this.db.collection("config").doc("gemini").get();
+        if (doc.exists && doc.data() && doc.data().apiKey) {
+          return doc.data().apiKey;
+        }
+      } catch (e) {
+        console.warn("No se pudo leer la clave global de Gemini desde Firestore:", e);
+      }
+    }
+    return null;
+  },
+
+  // Guarda la clave global de Gemini en Firestore (una sola vez por el profesor)
+  async setGlobalGeminiKey(apiKey) {
+    if (this.isCloudActive && this.db) {
+      try {
+        await this.db.collection("config").doc("gemini").set({
+          apiKey: apiKey.trim(),
+          updatedAt: new Date().toISOString()
+        });
+        return true;
+      } catch (e) {
+        console.error("Error guardando clave global en Firestore:", e);
+      }
+    }
+    return false;
   }
 };
 
