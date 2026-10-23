@@ -1,7 +1,7 @@
 // =========================================================================
 // SERVICIO DE GEMINI AI (ASISTENTE PEDAGÓGICO)
 // =========================================================================
-// Utiliza la API gratuita de Gemini (Google AI Studio) para pulir y optimizar
+// Utiliza la API de Gemini para pulir y optimizar
 // las preguntas de los estudiantes, estructurando un prompt de alta precisión.
 
 const GeminiService = {
@@ -30,7 +30,8 @@ Stack: ${stack.join(", ")}
 Error o duda: ${problem}
 Ya intentó: ${tried}`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const model = (window.GEMINI_CONFIG && window.GEMINI_CONFIG.model) || "gemini-2.5-flash-lite";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: "POST",
@@ -55,6 +56,21 @@ Ya intentó: ${tried}`;
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
+      // Si el modelo específico falla, intentar con gemini-flash-latest
+      if (response.status === 404 && model !== "gemini-flash-latest") {
+        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+        const fallbackRes = await fetch(fallbackUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: `${systemInstruction}\n\nDatos:\n${userContent}` }] }]
+          })
+        });
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          return fallbackData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        }
+      }
       throw new Error(errData.error?.message || "Error al comunicarse con la API de Gemini");
     }
 

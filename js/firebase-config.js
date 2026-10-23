@@ -1,22 +1,15 @@
 // =========================================================================
 // CONFIGURACIÓN DE FIREBASE (FIRESTORE)
 // =========================================================================
-// Si deseas conectar tu base de datos en la nube de Firebase:
-// 1. Ve a https://console.firebase.google.com/ y crea un proyecto gratuito.
-// 2. Crea una base de datos "Cloud Firestore" en modo de prueba o producción.
-// 3. Agrega una aplicación web y copia las claves aquí abajo.
-//
-// NOTA IMPORTANTE:
-// Si dejas estos valores vacíos o como están, la app funcionará al 100%
-// con la base de datos local predeterminada sin ningún error.
+// Conectado al proyecto: electiva-ai-faqs
 
 window.FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyBUuAeixjpl4PvwGg31bhwjgPmqVm6ieO0",
+  authDomain: "electiva-ai-faqs.firebaseapp.com",
+  projectId: "electiva-ai-faqs",
+  storageBucket: "electiva-ai-faqs.firebasestorage.app",
+  messagingSenderId: "299825315619",
+  appId: "1:299825315619:web:db80ef977c1a2ed466d696"
 };
 
 // Indica si las credenciales fueron configuradas por el profesor

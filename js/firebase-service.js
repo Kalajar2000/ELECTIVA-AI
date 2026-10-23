@@ -15,19 +15,22 @@ const DataService = {
 
     if (window.isFirebaseConfigured && window.isFirebaseConfigured()) {
       try {
-        await this.loadFirebaseSDK();
-        firebase.initializeApp(window.FIREBASE_CONFIG);
-        this.db = firebase.firestore();
-        this.isCloudActive = true;
+        if (typeof firebase !== "undefined") {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(window.FIREBASE_CONFIG);
+          }
+          this.db = firebase.firestore();
+          this.isCloudActive = true;
 
-        if (statusText) statusText.innerText = "Firestore en la nube conectado";
-        if (statusBadge) {
-          statusBadge.classList.remove("hidden");
-          const dot = statusBadge.querySelector("span:first-child");
-          if (dot) dot.className = "w-2 h-2 rounded-full bg-tertiary-fixed animate-ping";
+          if (statusText) statusText.innerText = "Firestore en la nube conectado";
+          if (statusBadge) {
+            statusBadge.classList.remove("hidden");
+            const dot = statusBadge.querySelector("span:first-child");
+            if (dot) dot.className = "w-2 h-2 rounded-full bg-tertiary-fixed animate-ping";
+          }
+          console.log("🔥 Conectado exitosamente a Firebase Firestore.");
+          return;
         }
-        console.log("🔥 Conectado exitosamente a Firebase Firestore.");
-        return;
       } catch (err) {
         console.warn("No se pudo conectar a Firebase, usando modo local:", err);
       }
@@ -39,28 +42,8 @@ const DataService = {
     if (statusBadge) statusBadge.classList.remove("hidden");
   },
 
-  // Carga dinámica de los scripts de Firebase para no ralentizar si no se usan
-  loadFirebaseSDK() {
-    return new Promise((resolve, reject) => {
-      if (window.firebase) return resolve();
-
-      const scriptApp = document.createElement("script");
-      scriptApp.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js";
-      scriptApp.onload = () => {
-        const scriptFirestore = document.createElement("script");
-        scriptFirestore.src = "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js";
-        scriptFirestore.onload = resolve;
-        scriptFirestore.onerror = reject;
-        document.head.appendChild(scriptFirestore);
-      };
-      scriptApp.onerror = reject;
-      document.head.appendChild(scriptApp);
-    });
-  },
-
   // Obtiene todas las preguntas frecuentes
   async getFaqs() {
-    // Si Firebase está activo, consultar colección 'faqs'
     if (this.isCloudActive && this.db) {
       try {
         const snapshot = await this.db.collection("faqs").get();
@@ -71,7 +54,6 @@ const DataService = {
           });
           return cloudFaqs;
         } else {
-          // Si la colección está vacía, sembrar las 8 iniciales en Firestore
           console.log("Sembrando preguntas iniciales en Firestore...");
           for (const faq of window.INITIAL_FAQS) {
             await this.db.collection("faqs").doc(faq.id).set(faq);
@@ -83,14 +65,11 @@ const DataService = {
       }
     }
 
-    // Respaldo Local (LocalStorage o INITIAL_FAQS)
     const localSaved = localStorage.getItem("ELECTIVA_IA_FAQS");
     if (localSaved) {
       try {
         return JSON.parse(localSaved);
-      } catch (e) {
-        // Ignorar si está corrupto
-      }
+      } catch (e) {}
     }
 
     return window.INITIAL_FAQS || [];
@@ -109,7 +88,6 @@ const DataService = {
       }
     }
 
-    // Actualizar también en memoria local
     if (window.AppState && window.AppState.faqs) {
       const item = window.AppState.faqs.find((f) => f.id === faqId);
       if (item) {
@@ -145,7 +123,6 @@ const DataService = {
       }
     }
 
-    // Guardado local
     if (window.AppState && window.AppState.faqs) {
       const faq = window.AppState.faqs.find((f) => f.id === faqId);
       if (faq) {
