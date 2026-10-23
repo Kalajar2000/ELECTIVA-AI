@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>¿Ya le preguntaste a la IA? · Electiva IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary-fixed-dim": "#c3c0ff",
+            "primary-container": "#312e81",
+            "tertiary-fixed-dim": "#68dba9",
+            "surface-variant": "#d8e3fb",
+            "on-secondary-fixed-variant": "#653e00",
+            "primary-fixed": "#e2dfff",
+            "on-secondary-container": "#684000",
+            "surface-container-highest": "#d8e3fb",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#fea619",
+            "on-tertiary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-primary-fixed": "#100563",
+            "on-primary": "#ffffff",
+            "surface-dim": "#cfdaf2",
+            "surface-container": "#e7eeff",
+            "background": "#f9f9ff",
+            "outline-variant": "#c8c5d3",
+            "inverse-on-surface": "#ecf1ff",
+            "secondary-fixed-dim": "#ffb95f",
+            "error": "#ba1a1a",
+            "tertiary-fixed": "#85f8c4",
+            "surface": "#f9f9ff",
+            "on-tertiary-fixed": "#002114",
+            "on-error": "#ffffff",
+            "primary": "#1a146b",
+            "on-background": "#111c2d",
+            "on-tertiary-container": "#40b888",
+            "surface-tint": "#5654a8",
+            "surface-container-lowest": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "on-primary-container": "#9c9af4",
+            "inverse-surface": "#263143",
+            "surface-bright": "#f9f9ff",
+            "on-surface": "#111c2d",
+            "surface-container-high": "#dee8ff",
+            "outline": "#777682",
+            "secondary": "#855300",
+            "on-surface-variant": "#474651",
+            "on-tertiary-fixed-variant": "#005137",
+            "inverse-primary": "#c3c0ff",
+            "on-secondary-fixed": "#2a1700",
+            "secondary-fixed": "#ffddb8",
+            "tertiary-container": "#00432d",
+            "tertiary": "#002b1b",
+            "on-primary-fixed-variant": "#3e3c8f"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            "2xl": "1rem",
+            full: "9999px"
+          },
+          spacing: {
+            gutter: "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.5rem",
+            margin: "1.5rem"
+          },
+          fontFamily: {
+            display: ["Plus Jakarta Sans", "sans-serif"],
+            headline: ["Plus Jakarta Sans", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            sans: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body text-on-surface antialiased min-h-screen flex flex-col">
+
+  <!-- Header Fijo con Contexto Académico -->
+  <header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-surface-container shadow-xs">
+    <div class="max-w-[1200px] mx-auto px-margin h-20 flex items-center justify-between gap-space-md">
+      <div class="flex items-center gap-space-md min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-xs">
+          <span class="material-symbols-outlined text-[24px]">smart_toy</span>
+        </div>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-space-sm">
+            <span class="font-headline text-lg font-bold text-primary tracking-tight truncate">¿Ya le preguntaste a la IA?</span>
+            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold">
+              🌙 Modo Entrega Nocturna (11:00 PM)
+            </span>
+          </div>
+          <span class="text-xs text-on-surface-variant truncate">
+            Electiva de Inteligencia Artificial • 158 estudiantes en curso • Respuestas verificadas del profesor
+          </span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-space-sm shrink-0">
+        <div class="hidden md:flex items-center px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-xs gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+          <span>Base de conocimiento activa</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Navegación de 4 Pasos -->
+    <div class="bg-surface-container-low border-t border-surface-container/50">
+      <div class="max-w-[1200px] mx-auto px-margin">
+        <nav class="flex items-center gap-space-xs overflow-x-auto py-2">
+          <a data-path="buscar-faq" href="#" aria-current="page" class="px-space-md py-space-sm transition-colors whitespace-nowrap bg-primary-container text-on-primary font-medium text-sm rounded-lg shadow-sm font-semibold">
+            1. Buscar FAQ
+          </a>
+          <a data-path="detalle-de-duda" href="#" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
+            2. Detalle de Duda
+          </a>
+          <a data-path="prompt-para-ia" href="#" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
+            3. Prompt para IA
+          </a>
+          <a data-path="escribir-al-profe" href="#" class="font-medium text-sm px-space-md py-space-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors whitespace-nowrap">
+            4. Escribir al Profe
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="w-full pt-36 pb-space-xl flex-1">
+    
+    <!-- VISTA 1: BUSCADOR DE FAQ (FUNCIÓN 1) -->
+    <div data-view="buscar-faq" class="max-w-[1200px] mx-auto px-margin">
+      
+      <!-- Hero de Búsqueda -->
+      <section class="relative overflow-hidden rounded-2xl bg-surface-container-low px-margin py-space-xl shadow-xs mb-space-lg border border-surface-container">
+        <div class="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-primary/5 blur-3xl"></div>
+        <div class="pointer-events-none absolute -bottom-20 -left-16 h-72 w-72 rounded-full bg-secondary-container/10 blur-2xl"></div>
+
+        <div class="relative z-10 max-w-[840px] mx-auto text-center flex flex-col items-center">
+          <div class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-surface-container-highest text-primary text-xs font-semibold mb-space-md">
+            <span class="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            <span>Base Oficial de Dudas • Electiva de Inteligencia Artificial</span>
+          </div>
+
+          <h1 class="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight mb-space-sm leading-tight">
+            ¿Tienes una duda antes de la entrega?
+          </h1>
+          <p class="text-base sm:text-lg text-on-surface-variant max-w-[680px] mb-space-lg leading-relaxed">
+            Busca aquí primero. Respuestas oficiales y acuerdos de clase verificados para que no te quedes atascado a las 11:00 PM.
+          </p>
+
+          <!-- Barra de Búsqueda Destacada -->
+          <div class="w-full max-w-[720px] relative shadow-md rounded-xl transition-all duration-300 focus-within:shadow-xl focus-within:ring-2 focus-within:ring-primary/40 bg-surface-container-lowest border border-surface-container">
+            <div class="relative flex items-center p-1.5">
+              <div class="pl-3 text-primary flex items-center shrink-0">
+                <span class="material-symbols-outlined text-[26px]">search</span>
+              </div>
+              <input 
+                type="text"
+                id="faq-search-input"
+                autocomplete="off"
+                placeholder="Escribe tu duda... ej: producto asistencia, PRD, GitHub, permisos"
+                class="w-full bg-transparent py-3 px-3 text-on-surface placeholder:text-outline text-base focus:outline-none"
+              >
+              <!-- Botón borrar búsqueda -->
+              <button 
+                type="button" 
+                id="btn-clear-search" 
+                class="hidden mr-2 p-1 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-high transition-colors"
+                title="Limpiar búsqueda"
+              >
+                <span class="material-symbols-outlined text-[20px]">close</span>
+              </button>
+              <!-- Indicador de atajo de teclado -->
+              <div class="hidden sm:flex items-center gap-1 pr-3 shrink-0">
+                <kbd class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-xs font-mono shadow-xs">⌘K</kbd>
+                <span class="text-outline text-xs">o</span>
+                <kbd class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-xs font-mono shadow-xs">Ctrl+K</kbd>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros de Categoría Rápidos -->
+          <div class="flex flex-wrap items-center justify-center gap-2 mt-space-md" id="filter-chip-group">
+            <button class="filter-chip active flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-xs transition-all hover:opacity-95" data-filter="all">
+              <span>Todas (8)</span>
+            </button>
+            <button class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container-high text-xs font-semibold shadow-xs transition-all border border-surface-container" data-filter="asistencia">
+              <span>📋 Asistencia y Formatos</span>
+            </button>
+            <button class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container-high text-xs font-semibold shadow-xs transition-all border border-surface-container" data-filter="prd">
+              <span>🚀 Entregas &amp; PRD</span>
+            </button>
+            <button class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container-high text-xs font-semibold shadow-xs transition-all border border-surface-container" data-filter="antigravity">
+              <span>🔑 Antigravity &amp; Permisos</span>
+            </button>
+            <button class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container-high text-xs font-semibold shadow-xs transition-all border border-surface-container" data-filter="github">
+              <span>🐙 GitHub &amp; Repo</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cabecera de Sección de Resultados -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-space-sm mb-space-md">
+        <div>
+          <div class="flex items-center gap-space-xs text-xs font-semibold text-secondary uppercase tracking-wider mb-1">
+            <span class="material-symbols-outlined text-[16px]">local_fire_department</span>
+            <span>Lo más consultado antes de las 11:59 PM</span>
+          </div>
+          <h2 class="font-headline text-2xl font-bold text-primary tracking-tight">Preguntas Frecuentes Oficiales</h2>
+        </div>
+        <span class="text-sm text-on-surface-variant font-medium" id="results-count">Cargando preguntas...</span>
+      </div>
+
+      <!-- Cuadrícula Dinámica de FAQs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-space-xl" id="faq-cards-container">
+        <!-- Las tarjetas se generan dinámicamente desde js/app.js y data/faqs.js -->
+      </div>
+
+      <!-- Estado Vacío cuando no hay resultados de búsqueda -->
+      <div id="faq-empty-state" class="hidden text-center py-space-xl px-space-md bg-surface-container-lowest rounded-2xl border border-surface-container mb-space-xl">
+        <div class="w-16 h-16 rounded-full bg-surface-container-high text-primary mx-auto flex items-center justify-center mb-space-md">
+          <span class="material-symbols-outlined text-[32px]">search_off</span>
+        </div>
+        <h3 class="font-headline text-xl font-bold text-on-surface mb-space-xs">
+          No encontramos preguntas sobre "<span id="empty-search-term"></span>"
+        </h3>
+        <p class="text-sm text-on-surface-variant max-w-md mx-auto mb-space-lg leading-relaxed">
+          Si tu duda es nueva o específica, puedes generar un prompt estructurado para preguntarle a la IA con todo el contexto del curso.
+        </p>
+        <button 
+          onclick="switchView('prompt-para-ia')"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold shadow-sm hover:opacity-95 transition-all"
+        >
+          <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+          <span>Preguntarle primero a la IA</span>
+        </button>
+      </div>
+
+      <!-- Banner de Asistencia Rápida / Fallback -->
+      <section class="relative rounded-2xl bg-primary-container text-on-primary p-space-lg shadow-sm border border-primary/20">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-space-md">
+          <div class="flex items-center gap-space-md text-center lg:text-left">
+            <div class="w-12 h-12 rounded-xl bg-surface-container-lowest/15 flex items-center justify-center shrink-0 hidden sm:flex">
+              <span class="material-symbols-outlined text-secondary-fixed text-[26px]">help</span>
+            </div>
+            <div>
+              <h3 class="font-headline text-lg font-bold mb-1">
+                ¿No encontraste la respuesta a tu caso?
+              </h3>
+              <p class="text-xs sm:text-sm text-primary-fixed">
+                Sigue la regla de oro: primero genera un prompt con contexto para Gemini/ChatGPT. Si no te resuelve, escríbele al profesor.
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-space-sm shrink-0 w-full sm:w-auto justify-center">
+            <button onclick="switchView('prompt-para-ia')" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-secondary-container text-on-secondary text-xs sm:text-sm font-semibold shadow-xs hover:bg-secondary transition-all">
+              <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+              <span>2. Armar prompt para IA</span>
+            </button>
+            <button onclick="switchView('escribir-al-profe')" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-surface-container-lowest/15 text-on-primary text-xs sm:text-sm font-semibold hover:bg-surface-container-lowest/25 transition-all">
+              <span class="material-symbols-outlined text-[18px]">mail</span>
+              <span>3. Escribirle al profesor</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- VISTA 2: DETALLE DE PREGUNTA (FUNCIÓN 2 - PREPARADA) -->
+    <div data-view="detalle-de-duda" class="hidden max-w-[1000px] mx-auto px-margin" id="faq-detail-container">
+      <!-- Se carga dinámicamente con openFaqDetail() -->
+    </div>
+
+    <!-- VISTA 3: PROMPT PARA IA (FUNCIÓN 3 - PLACEHOLDER PARA SIGUIENTE PASO) -->
+    <div data-view="prompt-para-ia" class="hidden max-w-[900px] mx-auto px-margin" id="prompt-builder-view">
+      <div class="text-center mb-space-lg">
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold mb-2">
+          Paso 3 del Flujo
+        </span>
+        <h2 class="font-headline text-3xl font-bold text-primary">Generador de Prompt para IA</h2>
+        <p class="text-sm text-on-surface-variant max-w-md mx-auto mt-1">
+          Próximamente: ingresa tu duda y genera un prompt listo para copiar en Gemini o ChatGPT con todo el contexto del curso.
+        </p>
+      </div>
+    </div>
+
+    <!-- VISTA 4: ESCRIBIR AL PROFE (FUNCIÓN 4 - PLACEHOLDER PARA SIGUIENTE PASO) -->
+    <div data-view="escribir-al-profe" class="hidden max-w-[600px] mx-auto px-margin" id="contact-teacher-view">
+      <div class="text-center mb-space-lg">
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold mb-2">
+          Último Recurso
+        </span>
+        <h2 class="font-headline text-3xl font-bold text-primary">Escribirle al Profesor</h2>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer Institucional -->
+  <footer class="w-full bg-surface-container-low border-t border-surface-container py-space-md mt-auto">
+    <div class="max-w-[1200px] mx-auto px-margin flex flex-col md:flex-row items-center justify-between gap-space-sm text-on-surface-variant text-xs">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+        <span>Respuestas oficiales contrastadas con el sílabo y acuerdos de clase de la Electiva IA.</span>
+      </div>
+      <div class="flex items-center gap-3 font-medium">
+        <span>Cátedra IA 2025</span>
+        <span>•</span>
+        <span>Modo Alumnos</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Carga de Datos y Scripts -->
+  <script src="data/faqs.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
